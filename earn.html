@@ -104,8 +104,8 @@ $("adClaim").onclick = async () => {
 const SEG = [1, 2, 3, 5, 1, 2, 10, 3], N = SEG.length, A = 360 / N, cv = $("wheel"), cx = cv.getContext("2d");
 SEG.forEach((v, i) => {
   const a0 = (i * A - 90) * Math.PI / 180, a1 = ((i + 1) * A - 90) * Math.PI / 180;
-  cx.beginPath(); cx.moveTo(150, 150); cx.arc(150, 150, 150, a0, a1); cx.fillStyle = i % 2 ? "#F2B705" : "#0B6E4F"; cx.fill();
-  cx.save(); cx.translate(150, 150); cx.rotate((a0 + a1) / 2); cx.fillStyle = i % 2 ? "#241c00" : "#fff";
+  cx.beginPath(); cx.moveTo(150, 150); cx.arc(150, 150, 150, a0, a1); cx.fillStyle = i % 2 ? "#FFC53D" : "#7C5CFF"; cx.fill();
+  cx.save(); cx.translate(150, 150); cx.rotate((a0 + a1) / 2); cx.fillStyle = i % 2 ? "#1a1200" : "#fff";
   cx.font = "700 20px Sora,sans-serif"; cx.textAlign = "right"; cx.fillText(v, 135, 7); cx.restore();
 });
 let rot = 0;
