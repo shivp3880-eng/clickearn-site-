@@ -1,16 +1,17 @@
 <!DOCTYPE html><html lang="hi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Withdraw - ClickEarnIndia</title>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css"></head>
-<body><div class="wrap">
-<nav class="top"><a class="logo" href="index.html">ClickEarn<b>India</b></a><a class="btn alt sm" href="dashboard.html">Dashboard</a></nav>
-<div class="card bal"><small>Available balance</small><div class="big" id="bal">₹0.00</div></div>
+<body class="app"><div class="wrap">
+<nav class="top"><a class="logo" href="dashboard.html">ClickEarn<b>India</b></a><span></span></nav>
+<div class="card bal"><small>Available balance</small><div class="big" id="bal">₹0.00</div><div class="bar"><i id="bar"></i></div><small id="barTxt"></small></div>
 <div class="card" style="margin:14px 0"><h3>Withdrawal request</h3><p class="mut" id="min"></p>
 <form id="form" style="margin-top:12px"><label>UPI ID</label><input name="upi" placeholder="name@upi" required>
 <label>Amount (₹)</label><input name="amount" type="number" min="1" step="1" required>
 <button class="btn" style="width:100%">Request bhejo</button></form></div>
-<h2 style="margin-top:24px">History</h2>
+<div class="sec">History</div>
 <div class="card tw"><table class="tbl"><thead><tr><th>Date</th><th>UPI</th><th>Amount</th><th>Status</th></tr></thead><tbody id="rows"><tr><td colspan="4" class="mut">Koi request nahi.</td></tr></tbody></table></div>
 </div>
+<nav class="bnav"><a href="dashboard.html">Home</a><a href="earn.html">Earn</a><a class="on" href="withdraw.html">Wallet</a></nav>
 <script type="module">
 import { db, SETTINGS as S } from "./firebase-config.js";
 import { requireUser, toINR, toast, esc, fmtDate } from "./common.js";
@@ -21,7 +22,7 @@ $("min").textContent = "Minimum withdrawal ₹" + S.minWithdraw;
 
 requireUser(u => {
   uid = u.uid;
-  onSnapshot(doc(db, "users", uid), s => { d = s.data() || {}; $("bal").textContent = "₹" + toINR(d.points || 0); });
+  onSnapshot(doc(db, "users", uid), s => { d = s.data() || {}; $("bal").textContent = "₹" + toINR(d.points || 0); $("bar").style.width = Math.min(100, (d.points || 0) / (S.minWithdraw * S.pointsPerRupee) * 100) + "%"; $("barTxt").textContent = "Minimum ₹" + S.minWithdraw + " hone par withdraw kar sakte ho"; });
   onSnapshot(query(collection(db, "withdrawals"), where("uid", "==", uid)), s => {
     const r = s.docs.map(x => x.data()).sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
     if (r.length) $("rows").innerHTML = r.map(w => `<tr><td>${fmtDate(w.createdAt)}</td><td>${esc(w.upi)}</td><td>₹${esc(w.amount)}</td><td><span class="b ${esc(w.status)}">${esc(w.status)}</span></td></tr>`).join("");

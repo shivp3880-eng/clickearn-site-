@@ -1,0 +1,151 @@
+<!DOCTYPE html><html lang="hi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Earn - ClickEarnIndia</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css"></head>
+<body class="app"><div class="wrap">
+<nav class="top"><a class="logo" href="dashboard.html">ClickEarn<b>India</b></a><b id="pts" style="color:var(--g)">0 pts</b></nav>
+
+<div class="tabs" id="tabs">
+ <button class="btn on" data-t="ads">Ads</button>
+ <button class="btn" data-t="spin">Spin</button>
+ <button class="btn" data-t="quiz">Quiz</button>
+ <button class="btn" data-t="sv">Surveys</button>
+</div>
+
+<section class="pane on card" id="ads">
+ <h3>Ad dekho, points kamao</h3>
+ <p class="mut">Start dabao aur 15 second is page par ruko (tab badalne par timer ruk jaata hai). Phir Claim karo.</p>
+ <!-- 👇 Monetag ka code yahan paste karo (div ke andar) -->
+ <div class="slot" id="monetagSlot"></div>
+ <!-- 👇 Adsterra ka code yahan paste karo (div ke andar) -->
+ <div class="slot" id="adsterraSlot"></div>
+ <div class="timer" id="adTime">15</div>
+ <div style="display:flex;gap:10px"><button class="btn" id="adStart" style="flex:1">Start</button><button class="btn y" id="adClaim" style="flex:1" disabled>Claim</button></div>
+</section>
+
+<section class="pane card" id="spin" style="text-align:center">
+ <h3>Lucky Spin</h3><p class="mut" id="spinInfo"></p>
+ <div class="wheelbox"><div class="ptr"></div><canvas id="wheel" width="300" height="300"></canvas></div>
+ <button class="btn y" id="spinBtn" style="width:100%">Spin karo</button>
+</section>
+
+<section class="pane card" id="quiz">
+ <h3>Daily Quiz</h3><p class="mut" id="quizInfo"></p>
+ <div id="quizBox"></div>
+</section>
+
+<section class="pane card" id="sv">
+ <h3>Surveys &amp; Offerwalls</h3>
+ <p class="mut">Zyada points wale kaam yahan milenge.</p>
+ <!-- 👇 CPX: data-src="https://offers.cpx-research.com/index.php?app_id=XXXX&ext_user_id={uid}" -->
+ <iframe data-src="" hidden></iframe><div class="slot">Surveys jaldi aa rahe hain</div>
+ <!-- 👇 TimeWall: data-src="https://timewall.io/users/login?oid=XXXX&uid={uid}" -->
+ <iframe data-src="" hidden></iframe><div class="slot">Offerwall jaldi aa raha hai</div>
+</section>
+</div>
+<nav class="bnav"><a href="dashboard.html">Home</a><a class="on" href="earn.html">Earn</a><a href="withdraw.html">Wallet</a></nav>
+
+<script type="module">
+import { db, SETTINGS as S } from "./firebase-config.js";
+import { requireUser, today, toast } from "./common.js";
+import { doc, onSnapshot, updateDoc, setDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const $ = id => document.getElementById(id);
+let uid, d = {}, busy = false, quizRunning = false;
+requireUser(u => {
+  uid = u.uid;
+  document.querySelectorAll("iframe[data-src]").forEach(f => {
+    if (f.dataset.src) { f.src = f.dataset.src.replace("{uid}", uid); f.hidden = false; f.nextElementSibling?.remove(); }
+  });
+  onSnapshot(doc(db, "users", uid), s => { d = s.data() || {}; render(); });
+});
+function render() {
+  $("pts").textContent = (d.points || 0) + " pts";
+  const left = S.spinsPerDay - (d.spinDate === today() ? d.spinCount : 0);
+  $("spinInfo").textContent = "Aaj ke bache hue spin: " + left + " / " + S.spinsPerDay;
+  $("spinBtn").disabled = left <= 0 || busy;
+  if (d.quizDate === today()) { $("quizInfo").textContent = "Aaj ka quiz ho gaya. Kal phir aana!"; $("quizBox").innerHTML = ""; }
+  else if (!quizRunning) { $("quizInfo").textContent = "5 sawal. Har sahi jawab par " + S.quizPerCorrect + " points."; $("quizBox").innerHTML = '<button class="btn" id="qStart" style="width:100%">Quiz shuru karo</button>'; $("qStart").onclick = startQuiz; }
+}
+async function credit(pts, extra = {}) {
+  const t = today(), tp = (d.todayDate === t ? d.todayPoints : 0) + pts, earned = (d.earned || 0) + pts;
+  await updateDoc(doc(db, "users", uid), { points: increment(pts), todayPoints: tp, todayDate: t, earned, ...extra });
+  setDoc(doc(db, "leaderboard", uid), { name: (d.name || "User").split(" ")[0], earned }).catch(() => {});
+}
+
+// Tabs (Home ke links #ads, #spin, #quiz, #sv se seedha khulte hain)
+function show(t) {
+  document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("on", b.dataset.t === t));
+  document.querySelectorAll(".pane").forEach(p => p.classList.toggle("on", p.id === t));
+}
+$("tabs").onclick = e => { const t = e.target.dataset.t; if (t) { show(t); history.replaceState(null, "", "#" + t); } };
+if (document.getElementById(location.hash.slice(1))?.classList.contains("pane")) show(location.hash.slice(1));
+
+// Ads
+let left, tm;
+$("adTime").textContent = S.adSeconds;
+$("adStart").onclick = () => {
+  $("adStart").disabled = true; $("adClaim").disabled = true; left = S.adSeconds; $("adTime").textContent = left;
+  tm = setInterval(() => {
+    if (document.hidden) return;
+    $("adTime").textContent = --left;
+    if (left <= 0) { clearInterval(tm); $("adTime").textContent = "Ready!"; $("adClaim").disabled = false; }
+  }, 1000);
+};
+$("adClaim").onclick = async () => {
+  $("adClaim").disabled = true;
+  try {
+    await credit(S.adReward, { tasks: increment(1) });
+    setDoc(doc(db, "stats", "global"), { totalTasks: increment(1) }, { merge: true }).catch(() => {});
+    toast("+" + S.adReward + " points mil gaye!");
+  } catch (e) { toast("Error: " + e.code); }
+  $("adStart").disabled = false; $("adTime").textContent = S.adSeconds;
+};
+
+// Spin
+const SEG = [1, 2, 3, 5, 1, 2, 10, 3], N = SEG.length, A = 360 / N, cv = $("wheel"), cx = cv.getContext("2d");
+SEG.forEach((v, i) => {
+  const a0 = (i * A - 90) * Math.PI / 180, a1 = ((i + 1) * A - 90) * Math.PI / 180;
+  cx.beginPath(); cx.moveTo(150, 150); cx.arc(150, 150, 150, a0, a1); cx.fillStyle = i % 2 ? "#F2B705" : "#0B6E4F"; cx.fill();
+  cx.save(); cx.translate(150, 150); cx.rotate((a0 + a1) / 2); cx.fillStyle = i % 2 ? "#241c00" : "#fff";
+  cx.font = "700 20px Sora,sans-serif"; cx.textAlign = "right"; cx.fillText(v, 135, 7); cx.restore();
+});
+let rot = 0;
+$("spinBtn").onclick = () => {
+  const used = d.spinDate === today() ? d.spinCount : 0;
+  if (busy || used >= S.spinsPerDay) return toast("Aaj ke spin khatam");
+  busy = true; $("spinBtn").disabled = true;
+  const i = Math.floor(Math.random() * N);
+  rot = rot - (rot % 360) + 360 * 5 + ((360 - (i * A + A / 2)) % 360);
+  cv.style.transform = `rotate(${rot}deg)`;
+  setTimeout(async () => {
+    try { await credit(SEG[i], { spinDate: today(), spinCount: used + 1 }); toast("Aapne " + SEG[i] + " points jeete! 🎉"); } catch (e) { toast("Error: " + e.code); }
+    busy = false; render();
+  }, 4200);
+};
+
+// Quiz
+const QS = [
+  ["India ki rajdhani kaun si hai?", ["Mumbai", "New Delhi", "Kolkata", "Chennai"], 1],
+  ["Taj Mahal kis shehar mein hai?", ["Jaipur", "Lucknow", "Agra", "Delhi"], 2],
+  ["India ka rashtriya pashu kaun sa hai?", ["Sher (Bengal Tiger)", "Haathi", "Mor", "Gaay"], 0],
+  ["Bharat ka Samvidhan kab lagu hua?", ["1947", "1950", "1952", "1935"], 1],
+  ["Ganga nadi kis sagar mein girti hai?", ["Arabian Sea", "Hind Mahasagar", "Bay of Bengal", "Pacific"], 2]
+];
+let qi = 0, score = 0;
+function startQuiz() { quizRunning = true; qi = 0; score = 0; showQ(); }
+function showQ() {
+  const [q, o] = QS[qi];
+  $("quizInfo").textContent = "Sawal " + (qi + 1) + " / " + QS.length;
+  $("quizBox").innerHTML = `<b>${q}</b>` + o.map((t, k) => `<button class="btn opt" data-k="${k}">${t}</button>`).join("");
+  $("quizBox").querySelectorAll(".opt").forEach(b => b.onclick = () => answer(+b.dataset.k));
+}
+async function answer(k) {
+  const right = QS[qi][2];
+  $("quizBox").querySelectorAll(".opt").forEach((b, i) => { b.disabled = true; if (i === right) b.classList.add("ok"); else if (i === k) b.classList.add("no"); });
+  if (k === right) score++;
+  await new Promise(r => setTimeout(r, 900));
+  if (++qi < QS.length) return showQ();
+  quizRunning = false;
+  try { await credit(score * S.quizPerCorrect, { quizDate: today() }); toast("Quiz poora! +" + score * S.quizPerCorrect + " points"); } catch (e) { toast("Error: " + e.code); }
+  $("quizBox").innerHTML = `<div class="big">${score} / ${QS.length} sahi</div>`; $("quizInfo").textContent = "Kal phir aana!";
+}
+</script></body></html>

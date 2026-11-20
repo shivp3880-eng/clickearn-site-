@@ -50,3 +50,20 @@ iframe{width:100%;height:600px;border:0;border-radius:12px;margin:10px 0}
 .opt{display:block;width:100%;text-align:left;margin:8px 0;background:#fff;color:var(--ink);border:1.5px solid var(--line)}
 .opt.ok{background:var(--g2);border-color:var(--g)}.opt.no{background:#fde2df;border-color:var(--red)}
 .me{background:var(--g2);font-weight:600}
+
+/* ===== v2: app layout (Home / Earn / Wallet) ===== */
+body.app .wrap{padding-bottom:96px;max-width:640px}
+.bnav{position:fixed;left:0;right:0;bottom:0;z-index:8;display:flex;gap:6px;padding:8px 12px calc(8px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid var(--line)}
+.bnav a{flex:1;text-align:center;padding:11px 0;border-radius:12px;font-weight:600;font-size:.92rem;text-decoration:none;color:var(--mut)}
+.bnav a.on{background:var(--g);color:#fff}
+.hi{font-size:1.25rem;font-weight:800;margin:4px 0 14px}
+.bal{padding:24px}.bal .big{font-size:2.6rem;line-height:1.1;margin:6px 0 2px}
+.bal .inr{font-size:1.1rem;font-weight:600;color:var(--y)}
+.bar{height:10px;background:#0a5a41;border-radius:99px;margin:16px 0 6px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--y);border-radius:99px;transition:width .6s}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+.qa{display:block;text-decoration:none;color:var(--ink);font-weight:600}.qa small{display:block;font-weight:400}
+.sec{font-size:1.05rem;font-weight:800;margin:24px 0 10px}
+.card+.card{margin-top:12px}
+.tabs{margin:0 0 14px}
+.slot:empty{display:none}
