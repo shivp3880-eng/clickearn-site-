@@ -64,6 +64,6 @@ body.app .wrap{padding-bottom:96px;max-width:640px}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
 .qa{display:block;text-decoration:none;color:var(--ink);font-weight:600}.qa small{display:block;font-weight:400}
 .sec{font-size:1.05rem;font-weight:800;margin:24px 0 10px}
-.card+.card{margin-top:12px}
+.wrap>.card+.card{margin-top:12px}
 .tabs{margin:0 0 14px}
 .slot:empty{display:none}
