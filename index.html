@@ -1,0 +1,53 @@
+<!DOCTYPE html><html lang="hi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ClickEarnIndia - Ads dekho, UPI mein kamao</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css"></head>
+<body><div class="wrap">
+<nav class="top"><a class="logo" href="index.html">ClickEarn<b>India</b></a>
+<div><a class="btn alt sm" href="login.html">Login</a><a class="btn sm" href="register.html">Join Free</a></div></nav>
+
+<section class="hero">
+ <div><h1>Chhote kaam karo, paise seedha UPI mein lo.</h1>
+ <p>Ads dekho, surveys bharo aur daily bonus lo. Sirf ₹150 hote hi withdrawal request bhejo.</p>
+ <div class="row"><a class="btn y" href="register.html">Join Free</a><a class="btn alt" href="login.html">Login</a></div></div>
+ <div class="card"><b>Recent payouts</b><div id="payouts" style="margin-top:8px"><p class="mut">Abhi koi payout nahi hua.</p></div></div>
+</section>
+
+<h2>Kaise kaam karta hai</h2>
+<div class="grid g3">
+ <div class="card"><b>1. Free account banao</b><p class="mut">Email ya Google se 1 minute mein sign up.</p></div>
+ <div class="card"><b>2. Kaam karke points kamao</b><p class="mut">Ads dekho, surveys complete karo, daily bonus lo.</p></div>
+ <div class="card"><b>3. UPI mein withdraw karo</b><p class="mut">₹150 hone par UPI ID daalo, payment approve hote hi aapko mil jaata hai.</p></div>
+</div>
+
+<h2>Live stats</h2>
+<div class="grid g3">
+ <div class="card"><small>Total users</small><div class="big" id="sU">0</div></div>
+ <div class="card"><small>Tasks completed</small><div class="big" id="sT">0</div></div>
+ <div class="card"><small>Total paid out</small><div class="big" id="sP">₹0</div></div>
+</div>
+
+<h2>FAQ</h2>
+<details><summary>Kya yeh free hai?</summary><p class="mut">Haan, account banana aur use karna bilkul free hai.</p></details>
+<details><summary>Minimum withdrawal kitna hai?</summary><p class="mut">₹150. Request bhejne ke baad status Pending se Paid ho jaata hai.</p></details>
+<details><summary>Payment kitne time mein milta hai?</summary><p class="mut">Requests manually check hoti hain, isliye thoda time lag sakta hai.</p></details>
+<details><summary>Referral kaise kaam karta hai?</summary><p class="mut">Dashboard se apna referral link share karo. Dost us link se join karega to aapka code uske account se jud jaata hai.</p></details>
+
+<h2 id="terms">Terms</h2><p class="mut">Ek insaan ka ek hi account. Fake clicks, bots ya VPN se kamaai karne par account block aur balance cancel ho sakta hai. Rewards advertisers ki availability par depend karte hain. (Apne hisaab se yeh text badlo.)</p>
+<h2 id="privacy">Privacy Policy</h2><p class="mut">Hum sirf aapka naam, email aur UPI ID store karte hain, withdrawal process karne ke liye. Third-party ad networks cookies use kar sakte hain. Hum aapka data bechte nahi. (Apne hisaab se yeh text badlo.)</p>
+
+<footer><span>© ClickEarnIndia</span><span><a href="#terms">Terms</a> · <a href="#privacy">Privacy Policy</a></span></footer>
+</div>
+<script type="module">
+import { db } from "./firebase-config.js";
+import { esc } from "./common.js";
+import { doc, onSnapshot, collection, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const $ = id => document.getElementById(id);
+onSnapshot(doc(db, "stats", "global"), s => {
+  const d = s.data() || {};
+  $("sU").textContent = d.totalUsers || 0; $("sT").textContent = d.totalTasks || 0; $("sP").textContent = "₹" + (d.totalPaid || 0);
+}, () => {});
+onSnapshot(query(collection(db, "payouts"), orderBy("createdAt", "desc"), limit(5)), s => {
+  if (s.empty) return;
+  $("payouts").innerHTML = s.docs.map(x => { const p = x.data(); return `<div class="pay"><span>${esc(p.name)}</span><b>₹${esc(p.amount)}</b></div>`; }).join("");
+}, () => {});
+</script></body></html>
