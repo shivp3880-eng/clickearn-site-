@@ -1,0 +1,82 @@
+<!DOCTYPE html><html lang="hi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex"><title>Admin - ClickEarnIndia</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css"></head>
+<body><div class="wrap">
+<nav class="top"><span class="logo">Admin <b>Panel</b></span><button class="btn alt sm" id="out" hidden>Logout</button></nav>
+
+<div class="card auth" id="gate"><h3>Admin login</h3>
+<form id="form" style="margin-top:12px"><label>Email</label><input type="email" name="email" required><label>Password</label><input type="password" name="password" required><button class="btn" style="width:100%">Login</button></form></div>
+
+<div id="panel" hidden>
+ <div class="grid g3"><div class="card"><small>Total users</small><div class="big" id="nU">0</div></div>
+ <div class="card"><small>Pending requests</small><div class="big" id="nP">0</div></div>
+ <div class="card"><small>Total paid</small><div class="big" id="nPaid">₹0</div></div></div>
+
+ <h2>Withdrawal requests</h2>
+ <div class="card tw"><table class="tbl"><thead><tr><th>Date</th><th>User</th><th>UPI</th><th>Amount</th><th>Status</th><th></th></tr></thead><tbody id="wRows"></tbody></table></div>
+
+ <h2>Users</h2>
+ <input id="search" placeholder="Naam ya email se dhundo">
+ <div class="card tw"><table class="tbl"><thead><tr><th>Naam</th><th>Email</th><th>Points</th><th>Code</th><th></th></tr></thead><tbody id="uRows"></tbody></table></div>
+</div></div>
+
+<script type="module">
+import { auth, db, SETTINGS as S } from "./firebase-config.js";
+import { esc, toast, fmtDate, toINR } from "./common.js";
+import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { doc, collection, onSnapshot, updateDoc, writeBatch, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const $ = id => document.getElementById(id);
+let users = [], wds = [], started = false;
+
+onAuthStateChanged(auth, u => {
+  const ok = u && u.email === S.adminEmail;
+  $("gate").hidden = ok; $("panel").hidden = !ok; $("out").hidden = !u;
+  if (u && !ok) { toast("Yeh account admin nahi hai"); signOut(auth); }
+  if (ok && !started) { started = true; load(); }
+});
+$("form").onsubmit = async e => { e.preventDefault(); try { await signInWithEmailAndPassword(auth, e.target.email.value, e.target.password.value); } catch (x) { toast("Login fail"); } };
+$("out").onclick = () => signOut(auth).then(() => location.reload());
+
+function load() {
+  onSnapshot(collection(db, "users"), s => { users = s.docs.map(x => ({ id: x.id, ...x.data() })); $("nU").textContent = users.length; drawUsers(); });
+  onSnapshot(collection(db, "withdrawals"), s => { wds = s.docs.map(x => ({ id: x.id, ...x.data() })).sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)); drawW(); });
+}
+function drawUsers() {
+  const q = $("search").value.toLowerCase();
+  $("uRows").innerHTML = users.filter(u => (u.name + u.email).toLowerCase().includes(q)).map(u =>
+    `<tr><td>${esc(u.name)}</td><td>${esc(u.email)}</td><td>${u.points || 0} (₹${toINR(u.points || 0)})</td><td>${esc(u.refCode)}</td>
+    <td><button class="btn sm" data-a="pts" data-id="${u.id}">+ / − Points</button></td></tr>`).join("");
+}
+function drawW() {
+  $("nP").textContent = wds.filter(w => w.status === "Pending").length;
+  $("nPaid").textContent = "₹" + wds.filter(w => w.status === "Paid").reduce((a, w) => a + w.amount, 0);
+  $("wRows").innerHTML = wds.map(w => `<tr><td>${fmtDate(w.createdAt)}</td><td>${esc(w.name)}<br><small>${esc(w.email)}</small></td><td>${esc(w.upi)}</td><td>₹${esc(w.amount)}</td>
+    <td><span class="b ${esc(w.status)}">${esc(w.status)}</span></td>
+    <td>${w.status === "Pending" ? `<button class="btn sm" data-a="paid" data-id="${w.id}">Paid</button> <button class="btn alt sm" data-a="rej" data-id="${w.id}">Reject</button>` : ""}</td></tr>`).join("");
+}
+$("search").oninput = drawUsers;
+
+document.addEventListener("click", async e => {
+  const { a, id } = e.target.dataset; if (!a) return;
+  try {
+    if (a === "pts") {
+      const v = Number(prompt("Kitne points? (+ add karne ke liye, - cut karne ke liye)")); if (!v) return;
+      await updateDoc(doc(db, "users", id), { points: increment(v) }); toast("Wallet update ho gaya");
+    }
+    const w = wds.find(x => x.id === id);
+    if (a === "paid" && w && confirm("₹" + w.amount + " " + w.upi + " ko bhej diye? Paid mark karein?")) {
+      const b = writeBatch(db), name = (w.name || "User").slice(0, 2) + "***";
+      b.update(doc(db, "withdrawals", id), { status: "Paid", paidAt: serverTimestamp() });
+      b.set(doc(collection(db, "payouts")), { name, amount: w.amount, createdAt: serverTimestamp() });
+      b.set(doc(db, "stats", "global"), { totalPaid: increment(w.amount) }, { merge: true });
+      await b.commit(); toast("Paid mark ho gaya");
+    }
+    if (a === "rej" && w && confirm("Reject karke points wapas karein?")) {
+      const b = writeBatch(db);
+      b.update(doc(db, "withdrawals", id), { status: "Rejected" });
+      b.update(doc(db, "users", w.uid), { points: increment(w.points) });
+      await b.commit(); toast("Reject hua, points wapas");
+    }
+  } catch (err) { toast("Error: " + err.code); }
+});
+</script></body></html>

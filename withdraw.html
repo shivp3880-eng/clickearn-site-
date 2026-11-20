@@ -1,0 +1,45 @@
+<!DOCTYPE html><html lang="hi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Withdraw - ClickEarnIndia</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css"></head>
+<body><div class="wrap">
+<nav class="top"><a class="logo" href="index.html">ClickEarn<b>India</b></a><a class="btn alt sm" href="dashboard.html">Dashboard</a></nav>
+<div class="card bal"><small>Available balance</small><div class="big" id="bal">₹0.00</div></div>
+<div class="card" style="margin:14px 0"><h3>Withdrawal request</h3><p class="mut" id="min"></p>
+<form id="form" style="margin-top:12px"><label>UPI ID</label><input name="upi" placeholder="name@upi" required>
+<label>Amount (₹)</label><input name="amount" type="number" min="1" step="1" required>
+<button class="btn" style="width:100%">Request bhejo</button></form></div>
+<h2 style="margin-top:24px">History</h2>
+<div class="card tw"><table class="tbl"><thead><tr><th>Date</th><th>UPI</th><th>Amount</th><th>Status</th></tr></thead><tbody id="rows"><tr><td colspan="4" class="mut">Koi request nahi.</td></tr></tbody></table></div>
+</div>
+<script type="module">
+import { db, SETTINGS as S } from "./firebase-config.js";
+import { requireUser, toINR, toast, esc, fmtDate } from "./common.js";
+import { doc, collection, query, where, onSnapshot, writeBatch, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const $ = id => document.getElementById(id);
+let uid, d = {};
+$("min").textContent = "Minimum withdrawal ₹" + S.minWithdraw;
+
+requireUser(u => {
+  uid = u.uid;
+  onSnapshot(doc(db, "users", uid), s => { d = s.data() || {}; $("bal").textContent = "₹" + toINR(d.points || 0); });
+  onSnapshot(query(collection(db, "withdrawals"), where("uid", "==", uid)), s => {
+    const r = s.docs.map(x => x.data()).sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+    if (r.length) $("rows").innerHTML = r.map(w => `<tr><td>${fmtDate(w.createdAt)}</td><td>${esc(w.upi)}</td><td>₹${esc(w.amount)}</td><td><span class="b ${esc(w.status)}">${esc(w.status)}</span></td></tr>`).join("");
+  });
+});
+
+$("form").onsubmit = async e => {
+  e.preventDefault();
+  const upi = e.target.upi.value.trim(), amt = Number(e.target.amount.value), pts = Math.round(amt * S.pointsPerRupee);
+  if (!/^[\w.\-]{2,}@[a-zA-Z]{2,}$/.test(upi)) return toast("UPI ID sahi nahi hai");
+  if (amt < S.minWithdraw) return toast("Minimum ₹" + S.minWithdraw + " chahiye");
+  if (pts > (d.points || 0)) return toast("Balance kam hai");
+  try {
+    const b = writeBatch(db);
+    b.set(doc(collection(db, "withdrawals")), { uid, name: d.name, email: d.email, upi, amount: amt, points: pts, status: "Pending", createdAt: serverTimestamp() });
+    b.update(doc(db, "users", uid), { points: increment(-pts) });
+    await b.commit();
+    e.target.reset(); toast("Request bhej di gayi!");
+  } catch (err) { toast("Error: " + err.code); }
+};
+</script></body></html>

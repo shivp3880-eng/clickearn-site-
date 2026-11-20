@@ -1,0 +1,205 @@
+<!DOCTYPE html><html lang="hi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard - ClickEarnIndia</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css"></head>
+<body><div class="wrap">
+<nav class="top"><a class="logo" href="index.html">ClickEarn<b>India</b></a><button class="btn alt sm" id="out">Logout</button></nav>
+
+<div class="card bal"><small>Wallet balance</small><div class="big" id="pts">0 pts</div><div id="inr">₹0.00</div></div>
+<div class="grid g3">
+ <div class="card"><small>Aaj ki kamaai</small><div class="big" id="today">0 pts</div><small id="todayInr">₹0.00</small></div>
+ <div class="card"><small>Referral link</small><input id="ref" readonly style="margin:8px 0"><button class="btn sm" id="copy">Copy link</button></div>
+</div>
+
+<div class="tabs" id="tabs">
+ <button class="btn on" data-t="ads">Watch Ads</button>
+ <button class="btn" data-t="sv">Surveys &amp; Offerwalls</button>
+ <button class="btn" data-t="spin">Spin &amp; Win</button>
+ <button class="btn" data-t="chk">Daily Check-in</button>
+ <button class="btn" data-t="quiz">Daily Quiz</button>
+ <button class="btn" data-t="lb">Leaderboard</button>
+ <a class="btn" href="withdraw.html">Withdraw</a>
+</div>
+
+<!-- ===== WATCH ADS ===== -->
+<section class="pane on card" id="ads">
+ <h3>Ad dekho, points kamao</h3>
+ <p class="mut">Start dabao, 15 second page par rukho (tab switch karne par timer ruk jaata hai), phir Claim karo.</p>
+ <!-- 👇 AD SLOT 1: Monetag ka code yahan paste karo -->
+ <div class="slot" id="monetagSlot">Monetag ad yahan aayega</div>
+ <!-- 👇 AD SLOT 2: Adsterra ka code yahan paste karo -->
+ <div class="slot" id="adsterraSlot">Adsterra ad yahan aayega</div>
+ <div class="timer" id="adTime">15</div>
+ <div style="display:flex;gap:10px"><button class="btn" id="adStart" style="flex:1">Start</button><button class="btn y" id="adClaim" style="flex:1" disabled>Claim</button></div>
+</section>
+
+<!-- ===== SURVEYS & OFFERWALLS ===== -->
+<section class="pane card" id="sv">
+ <h3>Surveys &amp; Offerwalls</h3>
+ <p class="mut">iframe ke <b>data-src</b> mein link paste karo. <b>{uid}</b> user ki ID se badal jaayega.</p>
+ <!-- 👇 CPX Research: data-src="https://offers.cpx-research.com/index.php?app_id=XXXX&ext_user_id={uid}" -->
+ <b>CPX Research</b>
+ <iframe data-src="" hidden></iframe><div class="slot">CPX Research ka link data-src mein paste karo</div>
+ <!-- 👇 TimeWall: data-src="https://timewall.io/users/login?oid=XXXX&uid={uid}" -->
+ <b>TimeWall</b>
+ <iframe data-src="" hidden></iframe><div class="slot">TimeWall ka link data-src mein paste karo</div>
+</section>
+
+<!-- ===== SPIN & WIN ===== -->
+<section class="pane card" id="spin" style="text-align:center">
+ <h3>Lucky Spin</h3><p class="mut" id="spinInfo"></p>
+ <div class="wheelbox"><div class="ptr"></div><canvas id="wheel" width="300" height="300"></canvas></div>
+ <button class="btn y" id="spinBtn">Spin karo</button>
+</section>
+
+<!-- ===== DAILY CHECK-IN ===== -->
+<section class="pane card" id="chk">
+ <h3>Daily Check-in</h3><p class="mut">24 ghante mein ek baar claim karo.</p>
+ <div class="big" id="chkPts" style="margin:10px 0"></div>
+ <button class="btn y" id="chkBtn">Check-in karo</button>
+</section>
+
+<!-- ===== DAILY QUIZ ===== -->
+<section class="pane card" id="quiz">
+ <h3>Daily Quiz</h3><p class="mut" id="quizInfo"></p>
+ <div id="quizBox"></div>
+</section>
+
+<!-- ===== LEADERBOARD ===== -->
+<section class="pane card" id="lb">
+ <h3>Top earners</h3>
+ <div class="tw"><table class="tbl"><thead><tr><th>#</th><th>Naam</th><th>Total points</th></tr></thead><tbody id="lbRows"><tr><td colspan="3" class="mut">Abhi koi ranking nahi.</td></tr></tbody></table></div>
+</section>
+</div>
+
+<script type="module">
+import { db, SETTINGS as S } from "./firebase-config.js";
+import { requireUser, logout, toINR, today, toast, esc } from "./common.js";
+import { doc, onSnapshot, updateDoc, setDoc, increment, collection, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const $ = id => document.getElementById(id);
+let uid, d = {};
+
+requireUser(u => {
+  uid = u.uid;
+  document.querySelectorAll("iframe[data-src]").forEach(f => {
+    if (f.dataset.src) { f.src = f.dataset.src.replace("{uid}", uid); f.hidden = false; f.nextElementSibling?.remove(); }
+  });
+  onSnapshot(doc(db, "users", uid), s => { d = s.data() || {}; render(); });
+  onSnapshot(query(collection(db, "leaderboard"), orderBy("earned", "desc"), limit(20)), s => {
+    if (s.empty) return;
+    $("lbRows").innerHTML = s.docs.map((x, i) => `<tr class="${x.id === uid ? "me" : ""}"><td>${i + 1}</td><td>${esc(x.data().name)}</td><td>${x.data().earned}</td></tr>`).join("");
+  }, () => {});
+});
+
+const ready = () => Date.now() - (d.lastCheckin || 0) >= 864e5;
+let busy = false;
+function render() {
+  const tp = d.todayDate === today() ? d.todayPoints : 0, p = d.points || 0;
+  $("pts").textContent = p + " pts"; $("inr").textContent = "₹" + toINR(p);
+  $("today").textContent = (tp || 0) + " pts"; $("todayInr").textContent = "₹" + toINR(tp || 0);
+  $("ref").value = d.refCode ? location.origin + location.pathname.replace("dashboard.html", "register.html") + "?ref=" + d.refCode : "";
+  // check-in
+  $("chkPts").textContent = "+" + S.dailyBonus + " points";
+  if (ready()) { $("chkBtn").disabled = false; $("chkBtn").textContent = "Check-in karo"; }
+  else { const m = Math.ceil((864e5 - (Date.now() - d.lastCheckin)) / 6e4); $("chkBtn").disabled = true; $("chkBtn").textContent = "Agla check-in " + Math.floor(m / 60) + "h " + (m % 60) + "m baad"; }
+  // spin
+  const left = S.spinsPerDay - (d.spinDate === today() ? d.spinCount : 0);
+  $("spinInfo").textContent = "Aaj ke bache hue spin: " + left + " / " + S.spinsPerDay;
+  $("spinBtn").disabled = left <= 0 || busy;
+  // quiz
+  if (d.quizDate === today()) { $("quizInfo").textContent = "Aaj ka quiz ho gaya. Kal phir aana!"; $("quizBox").innerHTML = ""; }
+  else if (!quizRunning) { $("quizInfo").textContent = "5 sawal. Har sahi jawab par " + S.quizPerCorrect + " points."; $("quizBox").innerHTML = '<button class="btn" id="qStart">Quiz shuru karo</button>'; $("qStart").onclick = startQuiz; }
+}
+setInterval(() => d.points !== undefined && render(), 60000);
+
+async function credit(pts, extra = {}) {
+  const t = today(), tp = (d.todayDate === t ? d.todayPoints : 0) + pts, earned = (d.earned || 0) + pts;
+  await updateDoc(doc(db, "users", uid), { points: increment(pts), todayPoints: tp, todayDate: t, earned, ...extra });
+  setDoc(doc(db, "leaderboard", uid), { name: (d.name || "User").split(" ")[0], earned }).catch(() => {});
+}
+
+// Tabs
+$("tabs").onclick = e => {
+  const t = e.target.dataset.t; if (!t) return;
+  document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("on", b === e.target));
+  document.querySelectorAll(".pane").forEach(p => p.classList.toggle("on", p.id === t));
+};
+
+// Ads
+let left, tm;
+$("adTime").textContent = S.adSeconds;
+$("adStart").onclick = () => {
+  $("adStart").disabled = true; $("adClaim").disabled = true; left = S.adSeconds; $("adTime").textContent = left;
+  tm = setInterval(() => {
+    if (document.hidden) return;
+    $("adTime").textContent = --left;
+    if (left <= 0) { clearInterval(tm); $("adTime").textContent = "Ready!"; $("adClaim").disabled = false; }
+  }, 1000);
+};
+$("adClaim").onclick = async () => {
+  $("adClaim").disabled = true;
+  try {
+    await credit(S.adReward, { tasks: increment(1) });
+    setDoc(doc(db, "stats", "global"), { totalTasks: increment(1) }, { merge: true }).catch(() => {});
+    toast("+" + S.adReward + " points mil gaye!");
+  } catch (e) { toast("Error: " + e.code); }
+  $("adStart").disabled = false; $("adTime").textContent = S.adSeconds;
+};
+
+// Daily check-in
+$("chkBtn").onclick = async () => {
+  if (!ready()) return;
+  try { await credit(S.dailyBonus, { lastCheckin: Date.now() }); toast("Check-in ho gaya! +" + S.dailyBonus); } catch (e) { toast("Error: " + e.code); }
+};
+
+// Spin & Win
+const SEG = [1, 2, 3, 5, 1, 2, 10, 3], N = SEG.length, A = 360 / N, cv = $("wheel"), cx = cv.getContext("2d");
+SEG.forEach((v, i) => {
+  const a0 = (i * A - 90) * Math.PI / 180, a1 = ((i + 1) * A - 90) * Math.PI / 180;
+  cx.beginPath(); cx.moveTo(150, 150); cx.arc(150, 150, 150, a0, a1); cx.fillStyle = i % 2 ? "#F2B705" : "#0B6E4F"; cx.fill();
+  cx.save(); cx.translate(150, 150); cx.rotate((a0 + a1) / 2); cx.fillStyle = i % 2 ? "#241c00" : "#fff";
+  cx.font = "700 20px Sora,sans-serif"; cx.textAlign = "right"; cx.fillText(v, 135, 7); cx.restore();
+});
+let rot = 0;
+$("spinBtn").onclick = () => {
+  const used = d.spinDate === today() ? d.spinCount : 0;
+  if (busy || used >= S.spinsPerDay) return toast("Aaj ke spin khatam");
+  busy = true; $("spinBtn").disabled = true;
+  const i = Math.floor(Math.random() * N);
+  rot = rot - (rot % 360) + 360 * 5 + ((360 - (i * A + A / 2)) % 360);
+  cv.style.transform = `rotate(${rot}deg)`;
+  setTimeout(async () => {
+    try { await credit(SEG[i], { spinDate: today(), spinCount: used + 1 }); toast("Aapne " + SEG[i] + " points jeete! 🎉"); } catch (e) { toast("Error: " + e.code); }
+    busy = false; render();
+  }, 4200);
+};
+
+// Daily Quiz
+const QS = [
+  ["India ki rajdhani kaun si hai?", ["Mumbai", "New Delhi", "Kolkata", "Chennai"], 1],
+  ["Taj Mahal kis shehar mein hai?", ["Jaipur", "Lucknow", "Agra", "Delhi"], 2],
+  ["India ka rashtriya pashu kaun sa hai?", ["Sher (Bengal Tiger)", "Haathi", "Mor", "Gaay"], 0],
+  ["Bharat ka Samvidhan kab lagu hua?", ["1947", "1950", "1952", "1935"], 1],
+  ["Ganga nadi kis sagar mein girti hai?", ["Arabian Sea", "Hind Mahasagar", "Bay of Bengal", "Pacific"], 2]
+];
+let quizRunning = false, qi = 0, score = 0;
+function startQuiz() { quizRunning = true; qi = 0; score = 0; showQ(); }
+function showQ() {
+  const [q, o] = QS[qi];
+  $("quizInfo").textContent = "Sawal " + (qi + 1) + " / " + QS.length;
+  $("quizBox").innerHTML = `<b>${q}</b>` + o.map((t, k) => `<button class="btn opt" data-k="${k}">${t}</button>`).join("");
+  $("quizBox").querySelectorAll(".opt").forEach(b => b.onclick = () => answer(+b.dataset.k));
+}
+async function answer(k) {
+  const right = QS[qi][2];
+  $("quizBox").querySelectorAll(".opt").forEach((b, i) => { b.disabled = true; if (i === right) b.classList.add("ok"); else if (i === k) b.classList.add("no"); });
+  if (k === right) score++;
+  await new Promise(r => setTimeout(r, 900));
+  if (++qi < QS.length) return showQ();
+  quizRunning = false;
+  try { await credit(score * S.quizPerCorrect, { quizDate: today() }); toast("Quiz poora! +" + score * S.quizPerCorrect + " points"); } catch (e) { toast("Error: " + e.code); }
+  $("quizBox").innerHTML = `<div class="big">${score} / ${QS.length} sahi</div>`; $("quizInfo").textContent = "Kal phir aana!";
+}
+
+$("copy").onclick = () => { navigator.clipboard.writeText($("ref").value); toast("Link copy ho gaya"); };
+$("out").onclick = logout;
+</script></body></html>
