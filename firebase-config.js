@@ -22,7 +22,7 @@ export const SETTINGS = {
   spinsPerDay: 2,        // roz kitne spin
   quizPerCorrect: 2,     // quiz mein har sahi jawab ke points
   minWithdraw: 150,      // minimum withdrawal ₹
-  adminEmail: "admin@example.com" // apna admin email (firestore.rules mein bhi yehi daalna)
+  adminEmail: "dookai79@gmail.com" // apna admin email (firestore.rules mein bhi yehi daalna)
 };
 
 const app = initializeApp(firebaseConfig);
