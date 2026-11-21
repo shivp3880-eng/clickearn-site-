@@ -1,35 +1,62 @@
 <!DOCTYPE html><html lang="hi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Withdraw - ClickEarnIndia</title>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css"></head>
+<title>Wallet - ClickEarnIndia</title>
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet"><link rel="stylesheet" href="style.css"></head>
 <body class="app"><div class="wrap">
-<nav class="top"><a class="logo" href="dashboard.html">ClickEarn<b>India</b></a><span></span></nav>
-<div class="card bal"><small>Available balance</small><div class="big" id="bal">₹0.00</div><div class="bar"><i id="bar"></i></div><small id="barTxt"></small></div>
-<div class="card" style="margin:14px 0"><h3>Withdrawal request</h3><p class="mut" id="min"></p>
-<form id="form" style="margin-top:12px"><label>UPI ID</label><input name="upi" placeholder="name@upi" required>
-<label>Amount (₹)</label><input name="amount" type="number" min="1" step="1" required>
-<div class="chips"><button type="button" class="btn alt sm" data-a="150">₹150</button><button type="button" class="btn alt sm" data-a="250">₹250</button><button type="button" class="btn alt sm" data-a="500">₹500</button></div>
-<button class="btn" style="width:100%">Request bhejo</button><p class="fine">Requests manually check hoti hain, isliye payment mein thoda time lag sakta hai.</p></form></div>
-<div class="sec">History</div>
-<div class="card tw"><table class="tbl"><thead><tr><th>Date</th><th>UPI</th><th>Amount</th><th>Status</th></tr></thead><tbody id="rows"><tr><td colspan="4" class="mut">Koi request nahi.</td></tr></tbody></table></div>
+<div class="hd"><div class="lg"><span class="mi">paid</span></div><div class="t"><b>ClickEarn<span style="color:var(--y)">India</span></b><small>Wallet</small></div><span class="chip"><span class="mi">monetization_on</span><span id="hp">0</span> pts</span><button class="ib" id="out" title="Logout"><span class="mi">logout</span></button></div>
+
+<div class="card bal"><div class="rw"><span class="cap"><span class="mi" style="font-size:18px">account_balance_wallet</span> Available balance</span><span class="chip" style="background:rgba(0,0,0,.3)"><span class="dot"></span>Live</span></div>
+<div class="rw" style="margin-top:10px"><div class="big" id="bal">₹0.00</div><span class="chip g" id="pp">0 Points</span></div>
+<div class="sub"><div class="rw"><small>Payout Goal: ₹150</small><b id="pct" style="color:var(--y)">0%</b></div><div class="bar"><i id="bar"></i></div><div class="rw"><small>Minimum ₹150 hone par withdraw kar sakte ho</small><span class="chip" style="background:rgba(0,0,0,.3);font-size:.72rem" id="need"></span></div></div></div>
+
+<div class="card" style="margin-top:14px"><div class="rw" style="align-items:flex-start"><h3><span class="mi" style="color:var(--y)">bolt</span> UPI Withdrawal Request</h3><span class="chip ok">UPI</span></div>
+<form id="form" style="margin-top:14px">
+<label>UPI ID (GPay / PhonePe / Paytm / BHIM)</label>
+<div class="fld"><input name="upi" required placeholder="mobile@paytm / name@okhdfcbank" style="padding-right:84px"><button type="button" class="btn alt sm go" id="paste">Paste</button></div>
+<p class="fine" style="margin:0 0 14px">Kripya apna sahi UPI ID dalein, galat ID par bheja hua paisa wapas nahi aayega.</p>
+<div class="rw"><label>Withdrawal Amount (₹)</label><small>Min: ₹150</small></div>
+<div class="fld pre"><i>₹</i><input name="amount" type="number" min="150" step="1" required></div>
+<div class="chips" style="display:flex;gap:8px"><button type="button" class="btn alt sm" data-a="150">₹150</button><button type="button" class="btn alt sm" data-a="250">₹250</button><button type="button" class="btn alt sm" data-a="500">₹500</button><button type="button" class="btn alt sm" id="all">All Balance</button></div>
+<button class="btn v" style="width:100%"><span class="mi">bolt</span>Request bhejo (Withdraw Now)</button>
+<p class="fine">Requests manually check hoti hain, isliye payment mein thoda time lag sakta hai.</p></form></div>
+
+<div class="card" style="margin-top:14px"><div class="rw" style="gap:12px;justify-content:flex-start"><div class="ico" style="margin:0;flex:none"><span class="mi">lightbulb</span></div><div><b>Fast Payout Tip</b><p class="mut" style="font-size:.88rem">Daily ad, spin aur quiz poora karke ₹150 jaldi reach karein!</p></div></div></div>
+
+<div class="card" style="margin-top:14px"><div class="rw"><h3><span class="mi">receipt_long</span> Withdrawal History</h3><small id="tot">Total: 0</small></div>
+<div class="tabs" id="flt" style="margin:12px 0"><button class="btn on" data-f="">All</button><button class="btn" data-f="Pending">Pending</button><button class="btn" data-f="Paid">Success</button></div>
+<div class="tw"><table class="tbl"><thead><tr><th>DATE</th><th>UPI ID</th><th>AMOUNT</th><th>STATUS</th></tr></thead><tbody id="rows"></tbody></table></div>
+<div class="empty" id="empty"><span class="mi">payments</span><p><b>Koi request nahi mili</b></p><p class="mut" style="font-size:.88rem;margin:4px 0 12px">Aapne abhi tak koi withdrawal request nahi bheji hai. Pehle task karke ₹150 complete karo.</p><a class="btn alt sm" href="earn.html"><span class="mi">stars</span>Earn section mein task karo</a></div></div>
 </div>
-<nav class="bnav"><a href="dashboard.html">Home</a><a href="earn.html">Earn</a><a class="on" href="withdraw.html">Wallet</a></nav>
+<nav class="bnav"><a href="dashboard.html"><span class="mi">home</span>Home</a><a href="earn.html"><span class="mi">stars</span>Earn</a><a class="on" href="withdraw.html"><span class="mi">account_balance_wallet</span>Wallet</a></nav>
+
 <script type="module">
 import { db, SETTINGS as S } from "./firebase-config.js";
-import { requireUser, toINR, toast, esc, fmtDate } from "./common.js";
+import { requireUser, logout, toINR, toast, esc, fmtDate } from "./common.js";
 import { doc, collection, query, where, onSnapshot, writeBatch, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 const $ = id => document.getElementById(id);
-let uid, d = {};
-$("min").textContent = "Minimum withdrawal ₹" + S.minWithdraw;
-
+let uid, d = {}, all = [], flt = "";
+$("out").onclick = logout;
+function draw() {
+  const r = flt ? all.filter(w => w.status === flt) : all;
+  $("tot").textContent = "Total: " + all.length;
+  $("empty").style.display = r.length ? "none" : "block";
+  $("rows").innerHTML = r.map(w => `<tr><td>${fmtDate(w.createdAt)}</td><td>${esc(w.upi)}</td><td>₹${esc(w.amount)}</td><td><span class="b ${esc(w.status)}">${esc(w.status)}</span></td></tr>`).join("");
+}
 requireUser(u => {
   uid = u.uid;
-  onSnapshot(doc(db, "users", uid), s => { d = s.data() || {}; $("bal").textContent = "₹" + toINR(d.points || 0); $("bar").style.width = Math.min(100, (d.points || 0) / (S.minWithdraw * S.pointsPerRupee) * 100) + "%"; $("barTxt").textContent = "Minimum ₹" + S.minWithdraw + " hone par withdraw kar sakte ho"; });
+  onSnapshot(doc(db, "users", uid), s => {
+    d = s.data() || {}; const p = d.points || 0, pc = Math.min(100, p / (S.minWithdraw * S.pointsPerRupee) * 100);
+    $("hp").textContent = p; $("bal").textContent = "₹" + toINR(p); $("pp").textContent = p + " Points";
+    $("bar").style.width = pc + "%"; $("pct").textContent = pc.toFixed(2) + "%";
+    $("need").textContent = "₹" + Math.max(0, S.minWithdraw - p / S.pointsPerRupee).toFixed(2) + " baki";
+  });
   onSnapshot(query(collection(db, "withdrawals"), where("uid", "==", uid)), s => {
-    const r = s.docs.map(x => x.data()).sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-    if (r.length) $("rows").innerHTML = r.map(w => `<tr><td>${fmtDate(w.createdAt)}</td><td>${esc(w.upi)}</td><td>₹${esc(w.amount)}</td><td><span class="b ${esc(w.status)}">${esc(w.status)}</span></td></tr>`).join("");
+    all = s.docs.map(x => x.data()).sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)); draw();
   });
 });
-
+$("flt").onclick = e => { const b = e.target.closest("button"); if (!b) return; flt = b.dataset.f; document.querySelectorAll("#flt button").forEach(x => x.classList.toggle("on", x === b)); draw(); };
+document.querySelectorAll(".chips button[data-a]").forEach(b => b.onclick = () => $("form").amount.value = b.dataset.a);
+$("all").onclick = () => $("form").amount.value = Math.floor((d.points || 0) / S.pointsPerRupee);
+$("paste").onclick = async () => { try { $("form").upi.value = (await navigator.clipboard.readText()).trim(); } catch (e) { toast("Paste allow karo ya khud likho"); } };
 $("form").onsubmit = async e => {
   e.preventDefault();
   const upi = e.target.upi.value.trim(), amt = Number(e.target.amount.value), pts = Math.round(amt * S.pointsPerRupee);
@@ -44,5 +71,4 @@ $("form").onsubmit = async e => {
     e.target.reset(); toast("Request bhej di gayi!");
   } catch (err) { toast("Error: " + err.code); }
 };
-document.querySelectorAll(".chips button").forEach(b => b.onclick = () => document.querySelector("[name=amount]").value = b.dataset.a);
 </script></body></html>

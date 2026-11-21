@@ -1,25 +1,25 @@
 <!DOCTYPE html><html lang="hi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Earn - ClickEarnIndia</title>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css"></head>
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet"><link rel="stylesheet" href="style.css"></head>
 <body class="app"><div class="wrap">
-<nav class="top"><a class="logo" href="dashboard.html">ClickEarn<b>India</b></a><b id="pts" style="color:var(--g)">0 pts</b></nav>
+<div class="hd"><div class="lg"><span class="mi">paid</span></div><div class="t"><b>ClickEarn<span style="color:var(--y)">India</span></b><small>Earn</small></div><span class="chip"><span class="mi">monetization_on</span><span id="pts">0 pts</span></span><button class="ib" id="out" title="Logout"><span class="mi">logout</span></button></div>
+<div class="cap">Earning hub</div><h2 style="margin:2px 0 14px;font-size:1.5rem">Task Chuno aur Kamao</h2>
 
 <div class="tabs" id="tabs">
- <button class="btn on" data-t="ads">Ads</button>
- <button class="btn" data-t="spin">Spin</button>
- <button class="btn" data-t="quiz">Quiz</button>
- <button class="btn" data-t="sv">Surveys</button>
+ <button class="btn on" data-t="ads"><span class="mi">smart_display</span>Ads</button>
+ <button class="btn" data-t="spin"><span class="mi">casino</span>Spin</button>
+ <button class="btn" data-t="quiz"><span class="mi">quiz</span>Quiz</button>
+ <button class="btn" data-t="sv"><span class="mi">fact_check</span>Surveys</button>
 </div>
 
 <section class="pane on card" id="ads">
- <h3>Ad dekho, points kamao</h3>
- <p class="mut">Start dabao aur 15 second is page par ruko (tab badalne par timer ruk jaata hai). Phir Claim karo.</p>
- <!-- 👇 Monetag ka code yahan paste karo (div ke andar) -->
+ <div class="rw" style="align-items:flex-start"><div class="ico" style="background:#4B1DA8"><span class="mi">videocam</span></div><h3 style="flex:1;margin:0 10px">Ad dekho, points kamao</h3><span class="chip g" id="adRw">+0 pts</span></div>
+ <div class="info" style="margin-top:14px"><b style="color:var(--ink)">Start</b> dabao aur <b style="color:var(--y)">15 second</b> is screen par ruko. Tab badalne par timer ruk jaata hai. Phir claim karo.</div>
+ <!-- Monetag ka code yahan paste karo -->
  <div class="slot" id="monetagSlot"></div>
- <!-- 👇 Adsterra ka code yahan paste karo (div ke andar) -->
- <div class="slot" id="adsterraSlot"></div>
- <div class="timer" id="adTime">15</div>
- <div style="display:flex;gap:10px"><button class="btn" id="adStart" style="flex:1">Start</button><button class="btn y" id="adClaim" style="flex:1" disabled>Claim</button></div>
+ <div class="ring"><div><span id="adTime">15</span><small>SECONDS</small></div></div>
+ <p class="fine" style="text-align:center;margin:0 0 14px"><span class="dot"></span>Ready to play ad</p>
+ <div style="display:flex;gap:10px"><button class="btn v" id="adStart" style="flex:1"><span class="mi">play_arrow</span>Start Ad</button><button class="btn y" id="adClaim" style="flex:1" disabled><span class="mi">task_alt</span>Claim</button></div>
 </section>
 
 <section class="pane card" id="spin" style="text-align:center">
@@ -36,19 +36,22 @@
 <section class="pane card" id="sv">
  <h3>Surveys &amp; Offerwalls</h3>
  <p class="mut">Zyada points wale kaam yahan milenge.</p>
- <!-- 👇 CPX: data-src="https://offers.cpx-research.com/index.php?app_id=XXXX&ext_user_id={uid}" -->
+ <!-- CPX: data-src="https://offers.cpx-research.com/index.php?app_id=XXXX&ext_user_id={uid}" -->
  <iframe data-src="" hidden></iframe><div class="slot">Surveys jaldi aa rahe hain</div>
- <!-- 👇 TimeWall: data-src="https://timewall.io/users/login?oid=XXXX&uid={uid}" -->
+ <!-- TimeWall: data-src="https://timewall.io/users/login?oid=XXXX&uid={uid}" -->
  <iframe data-src="" hidden></iframe><div class="slot">Offerwall jaldi aa raha hai</div>
 </section>
+
+<div class="card" style="margin-top:14px"><div class="rw" style="align-items:flex-start;gap:12px"><div class="ico" style="margin:0;flex:none"><span class="mi">verified_user</span></div><div><b>Fair play</b><p class="mut" style="font-size:.88rem">VPN, auto-clicker ya fake tab switch ka upayog na karein. Fair play se hi withdrawal milta hai.</p></div></div></div>
 </div>
-<nav class="bnav"><a href="dashboard.html">Home</a><a class="on" href="earn.html">Earn</a><a href="withdraw.html">Wallet</a></nav>
+<nav class="bnav"><a href="dashboard.html"><span class="mi">home</span>Home</a><a class="on" href="earn.html"><span class="mi">stars</span>Earn</a><a href="withdraw.html"><span class="mi">account_balance_wallet</span>Wallet</a></nav>
 
 <script type="module">
 import { db, SETTINGS as S } from "./firebase-config.js";
-import { requireUser, today, toast } from "./common.js";
+import { requireUser, logout, today, toast } from "./common.js";
 import { doc, onSnapshot, updateDoc, setDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 const $ = id => document.getElementById(id);
+$("out").onclick = logout; $("adRw").textContent = "+" + S.adReward + " pts";
 let uid, d = {}, busy = false, quizRunning = false;
 requireUser(u => {
   uid = u.uid;
@@ -76,7 +79,7 @@ function show(t) {
   document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("on", b.dataset.t === t));
   document.querySelectorAll(".pane").forEach(p => p.classList.toggle("on", p.id === t));
 }
-$("tabs").onclick = e => { const t = e.target.dataset.t; if (t) { show(t); history.replaceState(null, "", "#" + t); } };
+$("tabs").onclick = e => { const t = e.target.closest("button")?.dataset.t; if (t) { show(t); history.replaceState(null, "", "#" + t); } };
 if (document.getElementById(location.hash.slice(1))?.classList.contains("pane")) show(location.hash.slice(1));
 
 // Ads

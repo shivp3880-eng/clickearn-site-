@@ -1,33 +1,37 @@
 <!DOCTYPE html><html lang="hi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Home - ClickEarnIndia</title>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css"></head>
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet"><link rel="stylesheet" href="style.css"></head>
 <body class="app"><div class="wrap">
-<nav class="top"><a class="logo" href="dashboard.html">ClickEarn<b>India</b></a><button class="btn alt sm" id="out">Logout</button></nav>
-<div class="hi" id="hi">Namaste 👋</div>
+<div class="hd"><div class="lg"><span class="mi">paid</span></div><div class="t"><b>ClickEarn<span style="color:var(--y)">India</span></b><small>Home</small></div><span class="chip"><span class="mi">monetization_on</span><span id="hp">0</span> pts</span><button class="ib" id="out" title="Logout"><span class="mi">logout</span></button></div>
+<div class="hi" id="hi" style="font-size:1.6rem;margin-bottom:2px">Namaste 👋</div><p class="mut" style="margin-bottom:14px">Aaj ka task poora karo, cash nikalo!</p>
 
-<div class="card bal"><a class="btn y sm cash" href="withdraw.html">Paise nikalo</a><small>Wallet balance</small><div class="big" id="pts">0 pts</div><div class="inr" id="inr">₹0.00</div>
-<div class="bar"><i id="bar"></i></div><small id="barTxt"></small></div>
+<div class="card bal"><a class="btn y sm cash" href="withdraw.html"><span class="mi" style="font-size:16px">account_balance</span> Paise Nikalo</a>
+<div class="cap">Available wallet balance</div><div class="big" id="pts">0 pts</div>
+<span class="chip" style="background:rgba(0,0,0,.3)" id="inr">≈ ₹0.00</span>
+<div class="sub"><div class="rw"><b>Min. Payout ₹150</b><b id="pct" style="color:var(--y)">0%</b></div><div class="bar"><i id="bar"></i></div><div class="rw"><small id="cur">Current: ₹0.00</small><b id="left" style="color:var(--y)"></b></div></div>
+<small style="display:block;margin-top:12px">UPI se payment: Google Pay, PhonePe, Paytm</small></div>
 
 <div class="row2">
- <div class="card"><small>Aaj ki kamaai</small><div class="big" id="today">0</div><small id="todayInr">₹0.00</small></div>
- <div class="card"><small>Daily check-in</small><div style="font-weight:800;margin:6px 0" id="chkPts"></div><button class="btn y sm" id="chkBtn" style="width:100%">Check-in karo</button></div>
+ <div class="card"><div class="rw"><span class="cap">Aaj ki kamaai</span><span class="ico" style="width:36px;height:36px;margin:0"><span class="mi">savings</span></span></div><div class="big" id="today" style="margin-top:8px">0 pts</div><small id="todayInr" style="color:var(--ok)">₹0.00 aaj</small></div>
+ <div class="card"><span class="cap">Daily check-in</span><div class="big" style="margin:8px 0 10px">+<span id="chkPts">50</span> pts</div><button class="btn alt sm" id="chkBtn" style="width:100%">Check-in karo</button></div>
 </div>
 
-<div class="sec">Kamaana shuru karo</div>
+<div class="sec"><span class="mi" style="color:var(--y)">bolt</span> Kamaana shuru karo</div>
 <div class="row2" style="margin-top:0">
- <a class="card qa" href="earn.html#ads">Ad dekho<small>15 sec, points lo</small></a>
- <a class="card qa" href="earn.html#spin">Lucky Spin<small>Roz 2 baar</small></a>
- <a class="card qa" href="earn.html#quiz">Daily Quiz<small>5 sawal</small></a>
- <a class="card qa" href="earn.html#sv">Surveys<small>Zyada points</small></a>
+ <a class="card qa act" href="earn.html#ads"><span class="badge" id="bAd"></span><div class="ico"><span class="mi">smart_display</span></div>Ad dekho<small>15 sec, points lo</small></a>
+ <a class="card qa act" href="earn.html#spin"><span class="badge ok" id="bSp"></span><div class="ico"><span class="mi">casino</span></div>Lucky Spin<small>Roz 2 baar ghumao</small></a>
+ <a class="card qa act" href="earn.html#quiz"><span class="badge" id="bQz"></span><div class="ico"><span class="mi">quiz</span></div>Daily Quiz<small>5 aasan sawal</small></a>
+ <a class="card qa act" href="earn.html#sv"><div class="ico"><span class="mi">fact_check</span></div>Surveys<small>Zyada points kamao</small></a>
 </div>
 
-<div class="sec">Dost bulao</div>
-<div class="card"><p class="mut" style="margin-bottom:8px">Apna link share karo, dost join kare to aapko bonus.</p><input id="ref" readonly style="margin:0 0 10px"><button class="btn sm" id="copy">Copy link</button></div>
+<div class="card" style="margin-top:14px"><div class="ico"><span class="mi">group_add</span></div><h3>Dost bulao</h3><p class="mut" style="margin:6px 0 12px">Apna link share karo. Dost us link se join kare to aapka referral code uske account se jud jaata hai.</p>
+<div class="fld"><input id="ref" readonly style="padding-right:96px"><button class="btn alt sm go" id="copy">Copy Link</button></div>
+<a class="btn g2" id="wa" style="width:100%" target="_blank" rel="noopener"><span class="mi">share</span> WhatsApp par share karein</a></div>
 
-<div class="sec">Top earners</div>
-<div class="card tw"><table class="tbl"><thead><tr><th>#</th><th>Naam</th><th>Total points</th></tr></thead><tbody id="lbRows"><tr><td colspan="3" class="mut">Abhi koi ranking nahi.</td></tr></tbody></table></div>
+<div class="sec"><span class="mi" style="color:var(--y)">leaderboard</span> Top earners <small style="float:right;font-weight:400"><span class="dot"></span>Live Ranks</small></div>
+<div class="card" id="lbRows"><p class="mut">Abhi koi ranking nahi.</p></div>
 </div>
-<nav class="bnav"><a class="on" href="dashboard.html">Home</a><a href="earn.html">Earn</a><a href="withdraw.html">Wallet</a></nav>
+<nav class="bnav"><a class="on" href="dashboard.html"><span class="mi">home</span>Home</a><a href="earn.html"><span class="mi">stars</span>Earn</a><a href="withdraw.html"><span class="mi">account_balance_wallet</span>Wallet</a></nav>
 
 <script type="module">
 import { db, SETTINGS as S } from "./firebase-config.js";
@@ -38,23 +42,26 @@ let uid, d = {};
 requireUser(u => {
   uid = u.uid;
   onSnapshot(doc(db, "users", uid), s => { d = s.data() || {}; render(); });
-  onSnapshot(query(collection(db, "leaderboard"), orderBy("earned", "desc"), limit(20)), s => {
+  onSnapshot(query(collection(db, "leaderboard"), orderBy("earned", "desc"), limit(10)), s => {
     if (s.empty) return;
-    $("lbRows").innerHTML = s.docs.map((x, i) => `<tr class="${x.id === uid ? "me" : ""}"><td>${i + 1}</td><td>${esc(x.data().name)}</td><td>${x.data().earned}</td></tr>`).join("");
+    $("lbRows").innerHTML = s.docs.map((x, i) => `<div class="rk ${x.id === uid ? "me" : ""}"><div class="no">${i + 1}</div><div class="nm">${esc(x.data().name)}${x.id === uid ? ' <span class="chip g" style="padding:2px 8px">YOU</span>' : ""}</div><div class="pt">${x.data().earned} pts</div></div>`).join("");
   }, () => {});
 });
 const ready = () => Date.now() - (d.lastCheckin || 0) >= 864e5;
 function render() {
-  const tp = d.todayDate === today() ? d.todayPoints : 0, p = d.points || 0, goal = S.minWithdraw * S.pointsPerRupee;
-  $("hi").textContent = "Namaste, " + (d.name || "").split(" ")[0] + " 👋";
-  $("pts").textContent = p + " pts"; $("inr").textContent = "₹" + toINR(p);
-  $("bar").style.width = Math.min(100, p / goal * 100) + "%";
-  $("barTxt").textContent = "Withdrawal ke liye ₹" + S.minWithdraw + " chahiye (₹" + toINR(p) + " / ₹" + S.minWithdraw + ")";
-  $("today").textContent = (tp || 0) + " pts"; $("todayInr").textContent = "₹" + toINR(tp || 0);
-  $("ref").value = d.refCode ? location.origin + location.pathname.replace("dashboard.html", "register.html") + "?ref=" + d.refCode : "";
-  $("chkPts").textContent = "+" + S.dailyBonus + " pts";
-  if (ready()) { $("chkBtn").disabled = false; $("chkBtn").textContent = "Check-in karo"; }
-  else { const m = Math.ceil((864e5 - (Date.now() - d.lastCheckin)) / 6e4); $("chkBtn").disabled = true; $("chkBtn").textContent = Math.floor(m / 60) + "h " + (m % 60) + "m baad"; }
+  const tp = d.todayDate === today() ? d.todayPoints : 0, p = d.points || 0, goal = S.minWithdraw * S.pointsPerRupee, pc = Math.min(100, p / goal * 100);
+  $("hi").textContent = "Namaste, " + (d.name || "").split(" ")[0] + " 👋"; $("hp").textContent = p;
+  $("pts").textContent = p + " pts"; $("inr").textContent = "≈ ₹" + toINR(p) + "  •  " + S.pointsPerRupee + " pts = ₹1";
+  $("bar").style.width = pc + "%"; $("pct").textContent = pc.toFixed(2) + "%";
+  $("cur").textContent = "Current: ₹" + toINR(p); $("left").textContent = "₹" + Math.max(0, S.minWithdraw - p / S.pointsPerRupee).toFixed(2) + " aur kamao!";
+  $("today").textContent = (tp || 0) + " pts"; $("todayInr").textContent = "≈ ₹" + toINR(tp || 0) + " aaj";
+  $("bAd").textContent = "+" + S.adReward + " pts"; $("bQz").textContent = "+" + S.quizPerCorrect + "/sahi";
+  $("bSp").textContent = (S.spinsPerDay - (d.spinDate === today() ? d.spinCount : 0)) + " baar baki";
+  const link = d.refCode ? location.origin + location.pathname.replace("dashboard.html", "register.html") + "?ref=" + d.refCode : "";
+  $("ref").value = link; $("wa").href = "https://wa.me/?text=" + encodeURIComponent("ClickEarnIndia par join karo aur kamao: " + link);
+  $("chkPts").textContent = S.dailyBonus;
+  if (ready()) { $("chkBtn").disabled = false; $("chkBtn").className = "btn y sm"; $("chkBtn").textContent = "Check-in karo"; }
+  else { const m = Math.ceil((864e5 - (Date.now() - d.lastCheckin)) / 6e4); $("chkBtn").disabled = true; $("chkBtn").textContent = "In " + Math.floor(m / 60) + "h " + (m % 60) + "m"; }
 }
 setInterval(() => d.points !== undefined && render(), 60000);
 async function credit(pts, extra = {}) {
