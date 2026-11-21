@@ -14,11 +14,8 @@
 
 <section class="pane on card" id="ads">
  <div class="rw" style="align-items:flex-start"><div class="ico" style="background:#4B1DA8"><span class="mi">videocam</span></div><h3 style="flex:1;margin:0 10px">Ad dekho, points kamao</h3><span class="chip g" id="adRw">+0 pts</span></div>
- <div class="info" style="margin-top:14px"><b style="color:var(--ink)">Start</b> dabao aur <b style="color:var(--y)">15 second</b> is screen par ruko. Tab badalne par timer ruk jaata hai. Phir claim karo.</div>
- <!-- Monetag ka code yahan paste karo -->
- <div class="slot" id="monetagSlot"></div>
- <div class="ring"><div><span id="adTime">15</span><small>SECONDS</small></div></div>
- <p class="fine" style="text-align:center;margin:0 0 14px"><span class="dot"></span>Ready to play ad</p>
+ <div class="info" style="margin-top:14px"><b style="color:var(--ink)">Start Ad</b> dabao, ad dekho, phir close karke <b style="color:var(--y)">Claim</b> dabao. Points turant mil jaayenge.</div>
+ <div style="height:14px"></div>
  <div style="display:flex;gap:10px"><button class="btn v" id="adStart" style="flex:1"><span class="mi">play_arrow</span>Start Ad</button><button class="btn y" id="adClaim" style="flex:1" disabled><span class="mi">task_alt</span>Claim</button></div>
 </section>
 
@@ -45,6 +42,12 @@
 <div class="card" style="margin-top:14px"><div class="rw" style="align-items:flex-start;gap:12px"><div class="ico" style="margin:0;flex:none"><span class="mi">verified_user</span></div><div><b>Fair play</b><p class="mut" style="font-size:.88rem">VPN, auto-clicker ya fake tab switch ka upayog na karein. Fair play se hi withdrawal milta hai.</p></div></div></div>
 </div>
 <nav class="bnav"><a href="dashboard.html"><span class="mi">home</span>Home</a><a class="on" href="earn.html"><span class="mi">stars</span>Earn</a><a href="withdraw.html"><span class="mi">account_balance_wallet</span>Wallet</a></nav>
+
+<div id="adov" hidden><div class="ovbar"><span class="chip"><span class="mi">smart_display</span>Ad</span><button class="ib" id="ovX" title="Close"><span class="mi">close</span></button></div>
+<div class="ovbody">
+<!-- Monetag ka Banner/Native code yahan paste karo (div ke andar) -->
+<div class="slot" id="ovSlot"></div>
+<p class="mut" id="ovMsg"></p></div></div>
 
 <script type="module">
 import { db, SETTINGS as S } from "./firebase-config.js";
@@ -83,16 +86,12 @@ $("tabs").onclick = e => { const t = e.target.closest("button")?.dataset.t; if (
 if (document.getElementById(location.hash.slice(1))?.classList.contains("pane")) show(location.hash.slice(1));
 
 // Ads
-let left, tm;
-$("adTime").textContent = S.adSeconds;
 $("adStart").onclick = () => {
-  $("adStart").disabled = true; $("adClaim").disabled = true; left = S.adSeconds; $("adTime").textContent = left;
-  tm = setInterval(() => {
-    if (document.hidden) return;
-    $("adTime").textContent = --left;
-    if (left <= 0) { clearInterval(tm); $("adTime").textContent = "Ready!"; $("adClaim").disabled = false; }
-  }, 1000);
+  $("adStart").disabled = true; $("adClaim").disabled = true;
+  $("ovMsg").textContent = "Ad dekho, phir close karo aur Claim dabao.";
+  $("adov").hidden = false;
 };
+$("ovX").onclick = () => { $("adov").hidden = true; $("adClaim").disabled = false; };
 $("adClaim").onclick = async () => {
   $("adClaim").disabled = true;
   try {
@@ -100,7 +99,7 @@ $("adClaim").onclick = async () => {
     setDoc(doc(db, "stats", "global"), { totalTasks: increment(1) }, { merge: true }).catch(() => {});
     toast("+" + S.adReward + " points mil gaye!");
   } catch (e) { toast("Error: " + e.code); }
-  $("adStart").disabled = false; $("adTime").textContent = S.adSeconds;
+  $("adStart").disabled = false;
 };
 
 // Spin
