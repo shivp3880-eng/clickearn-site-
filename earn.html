@@ -49,7 +49,7 @@
 <script type="module">
 import { db, SETTINGS as S } from "./firebase-config.js";
 import { requireUser, logout, today, toast } from "./common.js";
-import { doc, onSnapshot, updateDoc, setDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, onSnapshot, updateDoc, setDoc, increment, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 const $ = id => document.getElementById(id);
 $("out").onclick = logout; $("adRw").textContent = "+" + S.adReward + " pts";
 let uid, d = {}, busy = false, quizRunning = false;
@@ -66,7 +66,7 @@ function render() {
   $("spinInfo").textContent = "Aaj ke bache hue spin: " + left + " / " + S.spinsPerDay;
   $("spinBtn").disabled = left <= 0 || busy;
   if (d.quizDate === today()) { $("quizInfo").textContent = "Aaj ka quiz ho gaya. Kal phir aana!"; $("quizBox").innerHTML = ""; }
-  else if (!quizRunning) { $("quizInfo").textContent = "5 sawal. Har sahi jawab par " + S.quizPerCorrect + " points."; $("quizBox").innerHTML = '<button class="btn" id="qStart" style="width:100%">Quiz shuru karo</button>'; $("qStart").onclick = startQuiz; }
+  else if (!quizRunning) { $("quizInfo").textContent = "5 naye sawal roz, kabhi repeat nahi. Har sahi jawab par " + S.quizPerCorrect + " points."; $("quizBox").innerHTML = '<button class="btn" id="qStart" style="width:100%">Quiz shuru karo</button>'; $("qStart").onclick = startQuiz; }
 }
 async function credit(pts, extra = {}) {
   const t = today(), tp = (d.todayDate === t ? d.todayPoints : 0) + pts, earned = (d.earned || 0) + pts;
@@ -126,19 +126,33 @@ $("spinBtn").onclick = () => {
 };
 
 // Quiz
-const QS = [
-  ["India ki rajdhani kaun si hai?", ["Mumbai", "New Delhi", "Kolkata", "Chennai"], 1],
-  ["Taj Mahal kis shehar mein hai?", ["Jaipur", "Lucknow", "Agra", "Delhi"], 2],
-  ["India ka rashtriya pashu kaun sa hai?", ["Sher (Bengal Tiger)", "Haathi", "Mor", "Gaay"], 0],
-  ["Bharat ka Samvidhan kab lagu hua?", ["1947", "1950", "1952", "1935"], 1],
-  ["Ganga nadi kis sagar mein girti hai?", ["Arabian Sea", "Hind Mahasagar", "Bay of Bengal", "Pacific"], 2]
-];
+let QS = [];
 let qi = 0, score = 0;
-function startQuiz() { quizRunning = true; qi = 0; score = 0; showQ(); }
+const hash = t => { let h = 0; for (const c of t) h = (h * 31 + c.charCodeAt(0)) | 0; return (h >>> 0).toString(36); };
+const shuf = a => a.map(v => [Math.random(), v]).sort((x, y) => x[0] - y[0]).map(x => x[1]);
+const clean = t => t.replace(/[<>&]/g, c => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c]));
+let seenNow = [];
+async function startQuiz() {
+  quizRunning = true; qi = 0; score = 0; $("quizBox").innerHTML = '<p class="mut">Sawal load ho rahe hain...</p>';
+  const seen = new Set(d.quizSeen || []), cat = [9, 22, 23, 17, 19][Math.floor(Math.random() * 5)];
+  try {
+    let res;
+    for (let t = 0; t < 2; t++) {
+      res = await (await fetch("https://opentdb.com/api.php?amount=30&type=multiple&encode=url3986&category=" + cat)).json();
+      if (res.response_code !== 5) break;
+      await new Promise(r => setTimeout(r, 5500));
+    }
+    const fresh = (res.results || []).map(x => ({ id: hash(x.question), x })).filter(o => !seen.has(o.id)).slice(0, 5);
+    if (fresh.length < 5) throw 0;
+    seenNow = fresh.map(o => o.id);
+    QS = fresh.map(({ x }) => { const c = decodeURIComponent(x.correct_answer), o = shuf([c, ...x.incorrect_answers.map(decodeURIComponent)]); return [decodeURIComponent(x.question), o, o.indexOf(c)]; });
+    showQ();
+  } catch (e) { quizRunning = false; toast("Sawal nahi mile, thodi der baad try karo"); render(); }
+}
 function showQ() {
   const [q, o] = QS[qi];
   $("quizInfo").textContent = "Sawal " + (qi + 1) + " / " + QS.length;
-  $("quizBox").innerHTML = `<b>${q}</b>` + o.map((t, k) => `<button class="btn opt" data-k="${k}">${t}</button>`).join("");
+  $("quizBox").innerHTML = `<b>${clean(q)}</b>` + o.map((t, k) => `<button class="btn opt" data-k="${k}">${clean(t)}</button>`).join("");
   $("quizBox").querySelectorAll(".opt").forEach(b => b.onclick = () => answer(+b.dataset.k));
 }
 async function answer(k) {
@@ -148,7 +162,12 @@ async function answer(k) {
   await new Promise(r => setTimeout(r, 900));
   if (++qi < QS.length) return showQ();
   quizRunning = false;
-  try { await credit(score * S.quizPerCorrect, { quizDate: today() }); toast("Quiz poora! +" + score * S.quizPerCorrect + " points"); } catch (e) { toast("Error: " + e.code); }
+  const pts = score * S.quizPerCorrect;
+  try {
+    try { await credit(pts, { quizDate: today(), quizSeen: arrayUnion(...seenNow) }); }
+    catch (e) { if (e.code !== "permission-denied") throw e; await credit(pts, { quizDate: today() }); }
+    toast("Quiz poora! +" + pts + " points");
+  } catch (e) { toast("Error: " + e.code); }
   $("quizBox").innerHTML = `<div class="big">${score} / ${QS.length} sahi</div>`; $("quizInfo").textContent = "Kal phir aana!";
 }
 </script></body></html>
